@@ -1,6 +1,7 @@
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
 
 import { RealTimeInfoPanel } from './realtimeinfopanel';
 import { RealTimeMap } from './realtimemap';
@@ -8,9 +9,9 @@ import { RealTimeMap } from './realtimemap';
 export function RealTimeControlLayout(): React.JSX.Element {
 	return (
 		<Stack
-			spacing={3}
+			spacing={2}
 			sx={{
-				mt: -2,
+				mt: -5,
 				width: 'calc(100vw - 80px)',
 				mx: 'calc(50% - 50vw + 40px)',
 				'@media (min-width:600px)': {
@@ -23,6 +24,9 @@ export function RealTimeControlLayout(): React.JSX.Element {
 				},
 			}}
 		>
+			<Typography sx={{ fontSize: 30, fontWeight: 800}}>
+				실시간 관제
+			</Typography>
 			<Box
 				sx={{
 					height: 600,

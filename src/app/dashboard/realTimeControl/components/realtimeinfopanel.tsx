@@ -19,6 +19,12 @@ export function RealTimeInfoPanel(): React.JSX.Element {
 				}}
 			>
 				<Box>
+					<Box
+						component="img"
+						src="/assets/marker.svg"
+						alt="쿨링포그 설치 위치"
+						sx={{ width: 80, height: 90, mx: 'auto', mb: 5 }}
+					/>
 					<Typography variant="h6" sx={{ fontWeight: 700 }}>
 						선택된 쿨링포그 위치가 없습니다.
 					</Typography>
