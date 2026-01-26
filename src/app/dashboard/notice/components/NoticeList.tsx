@@ -1,0 +1,57 @@
+'use client';
+
+import { Stack } from '@mui/material';
+import { Notice } from "@/types/notice/notice";
+import { NoticeItem } from './NoticeItem';
+import * as React from "react";
+
+
+// 초기 공지사항 데이터입니다.
+const initialNotices: Notice[] = [
+	{
+		notice_cd: "N1235",
+		notice_title: '열섬지수 데이터 실시간 모니터링 기능 추가',
+		notice_type: "공지",
+		create_dt: "2025-01-12",
+		notice_fix_yn: true,
+	},
+	{
+		notice_cd: "N1236",
+		notice_title: '역삼동386-2 쿨링포그 점검안내',
+		notice_type: "점검",
+		create_dt: "2025-01-11",
+		notice_fix_yn: true,
+	},
+	{
+		notice_cd: "N1237",
+		notice_title: '클리핑 AI 추천 알고리즘 개선',
+		notice_type: "업데이트",
+		create_dt: "2025-01-08",
+		notice_fix_yn: false,
+	},
+	{
+		notice_cd: "N1238",
+		notice_title: '스마트 쿨링 이벤트 참여 안내',
+		notice_type: "이벤트",
+		create_dt: "2025-01-05",
+		notice_fix_yn: false,
+	},
+];
+
+export function NoticeList() {
+	const [notices] = React.useState<Notice[]>(initialNotices);
+	return (
+		<Stack spacing={1.5}>
+			{notices.map((notice) => (
+				<NoticeItem
+					key={notice.notice_cd}
+					noticeCd={notice.notice_cd}
+					type={notice.notice_type}
+					date={notice.create_dt}
+					title={notice.notice_title}
+					pinned={notice.notice_fix_yn}
+				/>
+			))}
+		</Stack>
+	);
+}
