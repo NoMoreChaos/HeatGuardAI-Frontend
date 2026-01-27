@@ -59,6 +59,15 @@ export default [
 			"unicorn/no-null": "off",
 			"unicorn/no-nested-ternary": "off",
 			"unicorn/no-array-reduce": "off",
+			"unicorn/filename-case": [
+				"error",
+				{
+					cases: {
+						kebabCase: true,
+						pascalCase: true,
+					},
+				},
+			],
 		},
 	},
 	pluginReact.configs.flat.recommended,
@@ -70,6 +79,7 @@ export default [
 		},
 		rules: {
 			"react/prop-types": "off",
+			"react/react-in-jsx-scope": "off",
 		},
 	},
 	...compat.extends("plugin:react-hooks/recommended"),

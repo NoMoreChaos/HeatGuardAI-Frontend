@@ -1,7 +1,25 @@
-import * as React from "react";
+'use client';
 
-export default function Page(): React.JSX.Element {
+import * as React from 'react';
+import { Box, Container } from '@mui/material';
+import { NoticeCategoryToggle } from "@/app/dashboard/notice/components/NoticeCategoryTabs";
+import { NoticeSearchBar } from "@/app/dashboard/notice/components/NoticeSearchBar";
+import { NoticeHeader } from "@/app/dashboard/notice/components/NoticeHeader";
+import { NoticeList } from "@/app/dashboard/notice/components/NoticeList";
+
+export default function NoticePage() {
 	return (
-		<div>공지사항 관련 페이지입니다.</div>
+		<Container maxWidth="md" sx={{ py: 4 }}>
+			<NoticeHeader />
+			<Box mt={3}>
+				<NoticeSearchBar />
+			</Box>
+			<Box mt={2}>
+				<NoticeCategoryToggle />
+			</Box>
+			<Box mt={3}>
+				<NoticeList />
+			</Box>
+		</Container>
 	);
 }
