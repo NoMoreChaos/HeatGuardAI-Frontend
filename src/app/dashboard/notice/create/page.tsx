@@ -1,3 +1,5 @@
+'use client';
+
 import * as React from 'react';
 import { NoticeCreateForm } from "@/app/dashboard/notice/create/components/NoticeCreateForm";
 import Container from "@mui/material/Container";
