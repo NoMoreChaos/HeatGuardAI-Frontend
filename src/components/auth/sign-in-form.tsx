@@ -23,13 +23,19 @@ import { authClient } from '@/lib/auth/client';
 import { useUser } from '@/hooks/use-user';
 
 const schema = zod.object({
-  email: zod.string().min(1, { message: 'Email is required' }).email(),
-  password: zod.string().min(1, { message: 'Password is required' }),
+  email: zod.string().min(1, { message: '이메일을 입력해주세요.' }).email({ message: '이메일 형식을 확인해 주세요' }),
+  password: zod
+		.string()
+		.min(10, { message: '비밀번호는 10자 이상이어야 합니다.' })
+		.max(20, { message: '비밀번호는 20자 이하이어야 합니다.' })
+		.regex(/[A-Za-z]/, { message: '비밀번호는 영문을 포함해야 합니다.' })
+		.regex(/\d/, { message: '비밀번호는 숫자를 포함해야 합니다.' })
+		.regex(/[^A-Za-z0-9]/, { message: '비밀번호는 특수문자를 포함해야 합니다.' }),
 });
 
 type Values = zod.infer<typeof schema>;
 
-const defaultValues = { email: 'sofia@devias.io', password: 'Secret1' } satisfies Values;
+const defaultValues = { email: 'sofia@devias.io', password: 'Secret123!' } satisfies Values;
 
 export function SignInForm(): React.JSX.Element {
   const router = useRouter();
@@ -72,11 +78,11 @@ export function SignInForm(): React.JSX.Element {
   return (
     <Stack spacing={4}>
       <Stack spacing={1}>
-        <Typography variant="h4">Sign in</Typography>
+        <Typography variant="h4">로그인</Typography>
         <Typography color="text.secondary" variant="body2">
-          Don&apos;t have an account?{' '}
-          <Link component={RouterLink} href={paths.auth.signUp} underline="hover" variant="subtitle2">
-            Sign up
+					아직 계정이 없으신가요?
+					<Link component={RouterLink} href={paths.auth.signUp} underline="hover" variant="subtitle2">
+            회원가입
           </Link>
         </Typography>
       </Stack>
@@ -87,8 +93,8 @@ export function SignInForm(): React.JSX.Element {
             name="email"
             render={({ field }) => (
               <FormControl error={Boolean(errors.email)}>
-                <InputLabel>Email address</InputLabel>
-                <OutlinedInput {...field} label="Email address" type="email" />
+                <InputLabel>아이디(Email)</InputLabel>
+                <OutlinedInput {...field} label="아이디(Email)" type="email" />
                 {errors.email ? <FormHelperText>{errors.email.message}</FormHelperText> : null}
               </FormControl>
             )}
@@ -98,7 +104,7 @@ export function SignInForm(): React.JSX.Element {
             name="password"
             render={({ field }) => (
               <FormControl error={Boolean(errors.password)}>
-                <InputLabel>Password</InputLabel>
+                <InputLabel>비밀번호</InputLabel>
                 <OutlinedInput
                   {...field}
                   endAdornment={
@@ -127,27 +133,12 @@ export function SignInForm(): React.JSX.Element {
               </FormControl>
             )}
           />
-          <div>
-            <Link component={RouterLink} href={paths.auth.resetPassword} variant="subtitle2">
-              Forgot password?
-            </Link>
-          </div>
-          {errors.root ? <Alert color="error">{errors.root.message}</Alert> : null}
+					{errors.root ? <Alert color="error">{errors.root.message}</Alert> : null}
           <Button disabled={isPending} type="submit" variant="contained">
-            Sign in
+            로그인
           </Button>
         </Stack>
       </form>
-      <Alert color="warning">
-        Use{' '}
-        <Typography component="span" sx={{ fontWeight: 700 }} variant="inherit">
-          sofia@devias.io
-        </Typography>{' '}
-        with password{' '}
-        <Typography component="span" sx={{ fontWeight: 700 }} variant="inherit">
-          Secret1
-        </Typography>
-      </Alert>
     </Stack>
   );
 }
