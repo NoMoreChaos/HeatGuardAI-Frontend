@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import RouterLink from 'next/link';
@@ -20,8 +20,9 @@ import { Controller, useForm } from 'react-hook-form';
 import { z as zod } from 'zod';
 
 import { paths } from '@/paths';
-import { authClient } from '@/lib/auth/client';
 import { useUser } from '@/hooks/use-user';
+import { useEmailCheckMutation } from '@/hooks/mutations/email-check/use-email-check-mutation';
+import { useSignUpMutation } from '@/hooks/mutations/sign-up/use-sign-up-mutation';
 
 const baseSchema = zod.object({
   name: zod.string().min(1, { message: '이름을 입력해 주세요.' }),
@@ -55,11 +56,12 @@ export function SignUpForm(): React.JSX.Element {
   const [isPending, setIsPending] = React.useState<boolean>(false);
   const [emailCheckMessage, setEmailCheckMessage] = React.useState<string | null>(null);
   const [emailCheckError, setEmailCheckError] = React.useState<boolean>(false);
+  const { mutateAsync: checkEmail } = useEmailCheckMutation();
+  const { mutateAsync: signUp } = useSignUpMutation();
 
-	const PRIVACY_POLICY_URL = process.env.NEXT_PUBLIC_PRIVACY_POLICY_URL;
+  const PRIVACY_POLICY_URL = process.env.NEXT_PUBLIC_PRIVACY_POLICY_URL;
 
-
-	const {
+  const {
     control,
     handleSubmit,
     setError,
@@ -71,52 +73,86 @@ export function SignUpForm(): React.JSX.Element {
     async (values: Values): Promise<void> => {
       setIsPending(true);
 
-			const { confirmPassword, ...payload } = values;
+      const { confirmPassword, ...payload } = values;
+      try {
+        const result = await signUp({
+          user_nm: payload.name,
+          user_id: payload.email,
+          user_pw: payload.password,
+        });
 
-			const { error } = await authClient.signUp(payload);
+        if (!result.success || !result.data) {
+          setError('root', { type: 'server', message: result.error ?? '회원가입에 실패했습니다.' });
+          setIsPending(false);
+          return;
+        }
 
-      if (error) {
-        setError('root', { type: 'server', message: error });
+        try {
+          localStorage.setItem('access_token', result.data.access_token);
+          localStorage.setItem('user_auth', result.data.user_auth);
+          localStorage.setItem('user_nm', result.data.user_nm);
+          localStorage.setItem('user_email', result.data.user_email);
+					localStorage.setItem('user_cd', result.data.user_cd);
+        } catch (storageError) {
+          // noop
+        }
+
+        // Refresh the auth state
+        await checkSession?.();
+
+        // UserProvider, for this case, will not refresh the router
+        // After refresh, GuestGuard will handle the redirect
+        router.refresh();
+      } catch (error) {
+        const message =
+          (error as { response?: { data?: { error?: string } } }).response?.data?.error ??
+          '회원가입에 실패했습니다.';
+        setError('root', { type: 'server', message });
+      } finally {
         setIsPending(false);
+      }
+    },
+    [checkSession, router, setError, signUp]
+  );
+
+  const handleEmailCheck = React.useCallback(
+    async (email: string): Promise<void> => {
+      if (!email) {
+        setEmailCheckMessage('이메일을 입력해 주세요.');
+        setEmailCheckError(true);
+        return;
+      }
+      // 이메일 유효성 검사 먼저
+      const isValid = await trigger('email');
+
+      if (!isValid) {
+        // zod 에러 메시지는 errors.email로 자동 표시됨
+        setEmailCheckMessage(null);
+        setEmailCheckError(false);
         return;
       }
 
-      // Refresh the auth state
-      await checkSession?.();
+      try {
+        const result = await checkEmail({ user_id: email });
 
-      // UserProvider, for this case, will not refresh the router
-      // After refresh, GuestGuard will handle the redirect
-      router.refresh();
+        if (result.success) {
+          setEmailCheckMessage('사용 가능한 이메일입니다.');
+          setEmailCheckError(false);
+          return;
+        }
+
+        setEmailCheckMessage(result.error ?? '이메일 중복 확인에 실패했습니다.');
+        setEmailCheckError(true);
+      } catch (error) {
+        const message =
+          (error as { response?: { data?: { error?: string } } }).response?.data?.error ??
+          '이메일 중복 확인에 실패했습니다.';
+        setEmailCheckMessage(message);
+        setEmailCheckError(true);
+      }
     },
-    [checkSession, router, setError]
+    [checkEmail, trigger]
   );
-
-	const handleEmailCheck = React.useCallback(
-		async (email: string): Promise<void> => {
-			if (!email) {
-				setEmailCheckMessage('이메일을 입력해 주세요.');
-				setEmailCheckError(true);
-				return;
-			}
-			// 이메일 유효성 검사 먼저
-			const isValid = await trigger('email');
-
-			if (!isValid) {
-				// zod 에러 메시지는 errors.email로 자동 표시됨
-				setEmailCheckMessage(null);
-				setEmailCheckError(false);
-				return;
-			}
-
-			// 여기서 서버 중복확인 API 호출
-			// const { exists } = await api.checkEmail(email);
-
-			//예시 결과
-			setEmailCheckMessage('사용 가능한 이메일입니다.');
-			setEmailCheckError(false);
-		},
-		[trigger]
-	);
 
   return (
     <Stack spacing={3}>
@@ -131,17 +167,17 @@ export function SignUpForm(): React.JSX.Element {
       </Stack>
       <form onSubmit={handleSubmit(onSubmit)}>
         <Stack spacing={2}>
-					<Controller
-						control={control}
-						name="name"
-						render={({ field }) => (
-							<FormControl error={Boolean(errors.name)}>
-								<InputLabel>이름</InputLabel>
-								<OutlinedInput {...field} label="이름" />
-								{errors.name && (<FormHelperText>{errors.name.message}</FormHelperText>)}
-							</FormControl>
-						)}
-					/>
+          <Controller
+            control={control}
+            name="name"
+            render={({ field }) => (
+              <FormControl error={Boolean(errors.name)}>
+                <InputLabel>이름</InputLabel>
+                <OutlinedInput {...field} label="이름" />
+                {errors.name && <FormHelperText>{errors.name.message}</FormHelperText>}
+              </FormControl>
+            )}
+          />
           <Controller
             control={control}
             name="email"
@@ -161,9 +197,7 @@ export function SignUpForm(): React.JSX.Element {
                   }
                 />
                 {errors.email ? <FormHelperText>{errors.email.message}</FormHelperText> : null}
-                {emailCheckMessage ? (
-                  <FormHelperText error={emailCheckError}>{emailCheckMessage}</FormHelperText>
-                ) : null}
+                {emailCheckMessage ? <FormHelperText error={emailCheckError}>{emailCheckMessage}</FormHelperText> : null}
               </FormControl>
             )}
           />
@@ -206,13 +240,10 @@ export function SignUpForm(): React.JSX.Element {
                   control={<Checkbox {...field} />}
                   label={
                     <React.Fragment>
-                      <Link component="a"
-														href={PRIVACY_POLICY_URL}
-														target="_blank"
-														rel="noopener noreferrer">
-												개인정보 처리방침
-											</Link>
-											에 동의합니다.
+                      <Link component="a" href={PRIVACY_POLICY_URL} target="_blank" rel="noopener noreferrer">
+                        개인정보 처리방침
+                      </Link>
+                      에 동의합니다.
                     </React.Fragment>
                   }
                 />
