@@ -32,7 +32,7 @@ export function AiBestLocationHeader() {
 						AI 최적 위치
 					</Typography>
 					<Typography variant="body2" color="text.secondary">
-						설치 목적에 가장 적합한 쿨링포그 설치 위치를 추천합니다.
+						다양한 공간·환경 데이터를 종합 분석하여 쿨링 효과가 높은 최적 위치를 추천합니다.
 					</Typography>
 				</Box>
 			</Box>
