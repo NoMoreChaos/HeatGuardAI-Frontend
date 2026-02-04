@@ -5,6 +5,7 @@ import type { CoolingFogListData } from "@/types/realTimeControl/real-time-contr
 
 export async function GET() {
   const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+	const apiToken = process.env.API_ACCESS_TOKEN;
 
   if (!apiUrl) {
     return NextResponse.json(
@@ -14,7 +15,9 @@ export async function GET() {
   }
 
   try {
-    const response = await axios.get(`${apiUrl}/api/cf/list`);
+    const response = await axios.get(`${apiUrl}/api/cf/list`, {
+			headers: apiToken ? { Authorization: `Bearer ${apiToken}` } : undefined,
+		});
     const payload = response.data as {
       success?: boolean;
       data?: CoolingFogListData | null;

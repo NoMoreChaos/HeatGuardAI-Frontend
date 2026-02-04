@@ -13,7 +13,7 @@ import { useCoolingFogListMutation } from '@/hooks/mutations/realTimeControl/use
 export function RealTimeControlLayout(): React.JSX.Element {
 	const { mutate: fetchCoolingFogList, data: listData } = useCoolingFogListMutation();
 	const detailMutation = useCoolingFogDetailMutation();
-	const coolingFogList = listData?.data?.cfList ?? [];
+	const coolingFogList = listData?.data?.cf_list ?? [];
 	const selectedCoolingFog = detailMutation.data?.data ?? null;
 
 	const handleSelectCoolingFog = React.useCallback(

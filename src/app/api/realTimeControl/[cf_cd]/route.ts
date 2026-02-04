@@ -11,6 +11,7 @@ type RouteContext = {
 
 export async function GET(_: Request, context: RouteContext) {
   const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+	const apiToken = process.env.API_ACCESS_TOKEN;
   if (!apiUrl) {
     return NextResponse.json(
       fail<CoolingFogDetailData>("API 기본 URL이 설정되어 있지 않습니다."),
@@ -27,7 +28,9 @@ export async function GET(_: Request, context: RouteContext) {
   }
 
   try {
-    const response = await axios.get(`${apiUrl}/api/cf/${cf_cd}`);
+    const response = await axios.get(`${apiUrl}/api/cf/${cf_cd}`, {
+			headers: apiToken ? { Authorization: `Bearer ${apiToken}` } : undefined,
+		});
     const payload = response.data as {
       success?: boolean;
       data?: CoolingFogDetailData | null;

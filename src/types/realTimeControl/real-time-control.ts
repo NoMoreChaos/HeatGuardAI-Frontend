@@ -5,8 +5,8 @@
 }
 
 export interface CoolingFogListData {
-  totalCount: number;
-  cfList: CoolingFogListItem[];
+  total_count: number;
+  cf_list: CoolingFogListItem[];
 }
 
 export interface CoolingFogTimeSlot {
