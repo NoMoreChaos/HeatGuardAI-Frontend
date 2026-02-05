@@ -57,9 +57,14 @@ export function NoticeList({ category }: { category: NoticeCategory }) {
 		});
 	}, [category, mutateAsync]);
 
+	const sortednotices = [...notices].sort((a, b) => {
+		if (a.notice_fix_yn === b.notice_fix_yn) return 0;
+		return a.notice_fix_yn ? -1 : 1; // true가 위로
+	});
+
 	return (
 		<Stack spacing={1.5}>
-			{notices.map((notice) => (
+			{sortednotices.map((notice) => (
 				<NoticeItem
 					key={notice.notice_cd}
 					noticeCd={notice.notice_cd}
