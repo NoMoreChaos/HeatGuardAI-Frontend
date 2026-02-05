@@ -6,8 +6,11 @@ import type { CoolingFogListData } from "@/types/realTimeControl/real-time-contr
 export const useCoolingFogListMutation = () => {
   return useMutation<ApiResult<CoolingFogListData>, Error, void>({
     mutationFn: async () => {
+			const token = localStorage.getItem("access_token");
       const { data } = await axios.get<ApiResult<CoolingFogListData>>(
-        "/api/realTimeControl/list"
+        "/api/realTimeControl/list", {
+					headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+				}
       );
       return data;
     },

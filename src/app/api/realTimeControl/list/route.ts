@@ -3,9 +3,9 @@ import axios, { isAxiosError } from "axios";
 import { fail, ok } from "@/app/api/api-response";
 import type { CoolingFogListData } from "@/types/realTimeControl/real-time-control";
 
-export async function GET() {
+export async function GET(request: Request) {
   const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-	const apiToken = process.env.API_ACCESS_TOKEN;
+	const auth = request.headers.get("authorization");
 
   if (!apiUrl) {
     return NextResponse.json(
@@ -16,7 +16,7 @@ export async function GET() {
 
   try {
     const response = await axios.get(`${apiUrl}/api/cf/list`, {
-			headers: apiToken ? { Authorization: `Bearer ${apiToken}` } : undefined,
+			headers: auth ? { Authorization: auth } : undefined,
 		});
     const payload = response.data as {
       success?: boolean;

@@ -9,8 +9,12 @@ export const useCoolingFogDetailMutation = () => {
       if (!cfCd) {
         throw new Error("쿨링포그 아이디가 필요합니다.");
       }
+			const token = localStorage.getItem("access_token");
       const { data } = await axios.get<ApiResult<CoolingFogDetailData>>(
-        `/api/realTimeControl/${cfCd}`
+        `/api/realTimeControl/${cfCd}`,
+				{
+					headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+				}
       );
       return data;
     },
