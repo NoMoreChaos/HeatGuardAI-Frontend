@@ -40,9 +40,14 @@ import type { NoticeCategory } from "@/app/dashboard/notice/components/NoticeCat
 	},
 ];*/
 
-export function NoticeList({ category }: { category: NoticeCategory }) {
+export function NoticeList({ category, keyword }: { category: NoticeCategory; keyword: string }) {
 	const [notices, setNotices] = React.useState<Notice[]>([]);
 	const { mutateAsync} = useNoticeListMutation();
+
+	const filteredNotices = notices.filter((notice) =>
+		notice.notice_title.toLowerCase().includes(keyword.trim().toLowerCase())
+	);
+
 
 	React.useEffect(() => {
 		const fetchList = async () => {
@@ -57,7 +62,7 @@ export function NoticeList({ category }: { category: NoticeCategory }) {
 		});
 	}, [category, mutateAsync]);
 
-	const sortednotices = [...notices].sort((a, b) => {
+	const sortednotices = [...filteredNotices].sort((a, b) => {
 		if (a.notice_fix_yn === b.notice_fix_yn) return 0;
 		return a.notice_fix_yn ? -1 : 1; // true가 위로
 	});
