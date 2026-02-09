@@ -34,11 +34,12 @@ export type LocationType =
   | "전체"
   | "공원"
   | "광장"
-  | "버스정류장"
+  | "버스 정류장"
   | "보행로"
-  | "공공시설"
-  | "특수구역"
-  | "운동구간";
+  | "시장"
+  | "주거 밀집"
+  | "취약시설 주변"
+  | "공공시설";
 
 export type BudgetItemLike = {
   code: string;
@@ -77,10 +78,12 @@ function normalizeLocTags(loc: string): Set<LocationType> {
   // POC 매핑(필요시 고도화)
   if (has("공원")) tags.add("공원");
   if (has("광장") || has("중앙광장") || has("트인광장")) tags.add("광장");
-  if (has("버스") || has("정류장")) tags.add("버스정류장");
+  if (has("버스") || has("정류장") || has("버스정류장") || has("버스 정류장")) tags.add("버스 정류장");
   if (has("보행로") || has("산책로") || has("경로") || has("입구")) tags.add("보행로");
+  if (has("시장") || has("전통시장") || has("상가")) tags.add("시장");
+  if (has("주거") || has("주택") || has("아파트") || has("주거지") || has("밀집")) tags.add("주거 밀집");
+  if (has("취약시설") || has("복지") || has("노인") || has("요양") || has("장애")) tags.add("취약시설 주변");
   if (has("공공시설") || has("시설") || has("청사") || has("센터")) tags.add("공공시설");
-  if (has("특수") || has("야간") || has("경관") || has("황톳길")) tags.add("특수구역");
 
   // 펜스/구조물 → 공공시설로 임시
   if (has("펜스") || has("구조물")) tags.add("공공시설");
@@ -352,7 +355,17 @@ export default function AIDocumentsPanel(props: AIDocumentsPanelProps) {
   const { years, budget, pickedItems, allItems } = props;
 
   const ALL: LocationType = "전체";
-  const TYPES: LocationType[] = ["전체", "공원", "광장", "버스정류장", "보행로", "공공시설"];
+  const TYPES: LocationType[] = [
+    "전체",
+    "공원",
+    "광장",
+    "버스 정류장",
+    "보행로",
+    "시장",
+    "주거 밀집",
+    "취약시설 주변",
+    "공공시설",
+  ];
 
   const [types, setTypes] = React.useState<Set<LocationType>>(() => new Set([ALL]));
   const selectedTypesArr = React.useMemo(() => Array.from(types), [types]);
@@ -667,12 +680,35 @@ export default function AIDocumentsPanel(props: AIDocumentsPanelProps) {
       >
         <Stack spacing={1.25}>
           <Box>
-            <Typography variant="subtitle2" sx={{ fontWeight: 900, letterSpacing: "-0.01em" }}>
-              AI 문서 작성 (POC)
-            </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.25, lineHeight: 1.6 }}>
-              설치 유형 선택 후 문서를 생성해 확인합니다. (API 연결 없음)
-            </Typography>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 900, letterSpacing: "-0.01em" }}>
+                  AI 문서 작성
+                </Typography>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: "block", mt: 0.25, lineHeight: 1.6 }}
+                >
+                  설치 유형 선택 후 문서를 생성해 확인합니다.
+                </Typography>
+              </Box>
+              <Tooltip title={canGenerate ? "보고서/추천서 새로고침" : "예산 입력 후 사용 가능합니다."}>
+                <span>
+                  <IconButton
+                    size="small"
+                    onClick={() => {
+                      genReport();
+                      genRec();
+                    }}
+                    disabled={!canGenerate}
+                    sx={{ border: "1px solid", borderColor: "divider", bgcolor: "background.paper" }}
+                  >
+                    <RefreshIcon fontSize="small" />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            </Stack>
           </Box>
 
           <Box>
@@ -706,40 +742,39 @@ export default function AIDocumentsPanel(props: AIDocumentsPanelProps) {
 
           <Divider />
 
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: "wrap" }}>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 1,
+              width: "100%",
+            }}
+          >
             {/* 보고서 */}
             {reportStatus === "ready" ? (
               <>
                 <Button
                   startIcon={<DescriptionOutlinedIcon />}
                   variant="contained"
-                  color="success"
+                  color="primary"
                   onClick={() => setReportOpen(true)}
+                  fullWidth
+                  sx={{ minWidth: 0 }}
                 >
                   보고서 보기
                 </Button>
 
-                <Tooltip title="보고서 재생성">
-                  <span>
-                    <IconButton
-                      size="small"
-                      onClick={genReport}
-                      disabled={!canGenerate}
-                      sx={{ border: "1px solid", borderColor: "divider", bgcolor: "background.paper" }}
-                    >
-                      <RefreshIcon fontSize="small" />
-                    </IconButton>
-                  </span>
-                </Tooltip>
               </>
             ) : (
               <Tooltip title={canGenerate ? "" : "예산 입력 후 생성 가능합니다."}>
-                <span>
+                <span style={{ display: "block", width: "100%" }}>
                   <Button
                     startIcon={<DescriptionOutlinedIcon />}
                     variant="outlined"
                     onClick={genReport}
                     disabled={!canGenerate}
+                    fullWidth
+                    sx={{ minWidth: 0 }}
                   >
                     보고서 생성
                   </Button>
@@ -753,40 +788,32 @@ export default function AIDocumentsPanel(props: AIDocumentsPanelProps) {
                 <Button
                   startIcon={<TipsAndUpdatesOutlinedIcon />}
                   variant="contained"
-                  color="success"
+                  color="primary"
                   onClick={() => setRecOpen(true)}
+                  fullWidth
+                  sx={{ minWidth: 0 }}
                 >
                   추천서 보기
                 </Button>
 
-                <Tooltip title="추천서 재생성">
-                  <span>
-                    <IconButton
-                      size="small"
-                      onClick={genRec}
-                      disabled={!canGenerate}
-                      sx={{ border: "1px solid", borderColor: "divider", bgcolor: "background.paper" }}
-                    >
-                      <RefreshIcon fontSize="small" />
-                    </IconButton>
-                  </span>
-                </Tooltip>
               </>
             ) : (
               <Tooltip title={canGenerate ? "" : "예산 입력 후 생성 가능합니다."}>
-                <span>
+                <span style={{ display: "block", width: "100%" }}>
                   <Button
                     startIcon={<TipsAndUpdatesOutlinedIcon />}
                     variant="outlined"
                     onClick={genRec}
                     disabled={!canGenerate}
+                    fullWidth
+                    sx={{ minWidth: 0 }}
                   >
                     추천서 생성
                   </Button>
                 </span>
               </Tooltip>
             )}
-          </Stack>
+          </Box>
 
           <Typography variant="caption" color="text.secondary">
             * 문서는 예산 입력 후 생성됩니다.
@@ -829,7 +856,7 @@ export default function AIDocumentsPanel(props: AIDocumentsPanelProps) {
         <DialogTitle sx={{ fontWeight: 900 }}>
           <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
             <Box sx={{ minWidth: 0 }}>
-              <Typography fontWeight={900}>설치 예산 검토 보고서 (POC)</Typography>
+              <Typography fontWeight={900}>설치 예산 검토 보고서</Typography>
             </Box>
 
             <Stack direction="row" spacing={0.5} alignItems="center" sx={{ flexShrink: 0 }}>
@@ -933,7 +960,7 @@ export default function AIDocumentsPanel(props: AIDocumentsPanelProps) {
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={() => setReportOpen(false)}>닫기</Button>
+          <Button onClick={genReport}>AI에게 문서 재요청하기</Button>
         </DialogActions>
       </Dialog>
 
@@ -942,7 +969,7 @@ export default function AIDocumentsPanel(props: AIDocumentsPanelProps) {
         <DialogTitle sx={{ fontWeight: 900 }}>
           <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
             <Box sx={{ minWidth: 0 }}>
-              <Typography fontWeight={900}>예산 범위 내 구성 방안 추천서 (POC)</Typography>
+              <Typography fontWeight={900}>예산 범위 내 구성 방안 추천서</Typography>
             </Box>
 
             <Stack direction="row" spacing={0.5} alignItems="center" sx={{ flexShrink: 0 }}>
@@ -1064,7 +1091,7 @@ export default function AIDocumentsPanel(props: AIDocumentsPanelProps) {
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={() => setRecOpen(false)}>닫기</Button>
+          <Button onClick={genRec}>AI에게 문서 재요청하기</Button>
         </DialogActions>
       </Dialog>
     </>
