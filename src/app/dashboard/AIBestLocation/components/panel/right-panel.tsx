@@ -14,12 +14,16 @@ export default function RightPanel({
                                      mapHeight,
                                      isLoading,
                                      request,
+                                     submittedRequest,
                                      data,
+                                     resultKey,
                                    }: {
   mapHeight: number;
   isLoading: boolean;
   request: RecoRequestBody;
+  submittedRequest: RecoRequestBody | null;
   data: RecoApiResponse | null;
+  resultKey: number;
 }) {
   const hasResult =
     !!data?.success &&
@@ -38,7 +42,12 @@ export default function RightPanel({
       <Paper elevation={4} sx={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', gap: 2, borderRadius: 2, p: 3 }}>
           {/* ✅ 처음(또는 새로고침)에는 Idle, 검색 후에는 Result */}
           {hasResult ? (
-            <ResultView mapHeight={mapHeight} request={request} data={data!} />
+            <ResultView
+              mapHeight={mapHeight}
+              request={submittedRequest ?? request}
+              data={data!}
+              resultKey={resultKey}
+            />
           ) : (
             <IdleState />
           )}
