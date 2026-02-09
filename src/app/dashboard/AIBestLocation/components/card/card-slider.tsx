@@ -6,15 +6,23 @@ import IconButton from '@mui/material/IconButton';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
-export default function CardSlider({
-                                     children,
-                                     cardWidth = 425,
-                                     gap = 16,
-                                   }: {
+export type CardSliderProps = {
   children: React.ReactNode;
   cardWidth?: number;
+  cardHeight?: number;
+  resetKey?: string | number;
+  activeIndex?: number;
   gap?: number;
-}) {
+};
+
+const CardSlider: React.FC<CardSliderProps> = ({
+  children,
+  cardWidth = 425,
+  cardHeight,
+  resetKey,
+  activeIndex,
+  gap = 16,
+}) => {
   const railRef = React.useRef<HTMLDivElement | null>(null);
 
   // ✅ null 포함 + 배열 타입 명확히
@@ -106,6 +114,17 @@ export default function CardSlider({
     };
   }, [nearestIndex, scrollToIndex]);
 
+  React.useEffect(() => {
+    if (items.length === 0) return;
+    scrollToIndex(0);
+  }, [resetKey, items.length, scrollToIndex]);
+
+  React.useEffect(() => {
+    if (typeof activeIndex !== 'number') return;
+    if (activeIndex < 0 || activeIndex >= items.length) return;
+    scrollToIndex(activeIndex);
+  }, [activeIndex, items.length, scrollToIndex]);
+
   const prev = () => scrollToIndex(Math.max(0, nearestIndex() - 1));
   const next = () => scrollToIndex(Math.min(items.length - 1, nearestIndex() + 1));
 
@@ -175,9 +194,10 @@ export default function CardSlider({
             sx={{
               flex: '0 0 auto',
               width: cardWidth,
+              height: cardHeight ? `${cardHeight}px` : undefined,
               scrollSnapAlign: 'center',
               display: 'flex',
-              minHeight: maxH ? `${maxH}px` : undefined,
+              minHeight: cardHeight ? undefined : maxH ? `${maxH}px` : undefined,
             }}
           >
             <Box sx={{ flex: 1, display: 'flex' }}>{child}</Box>
@@ -186,4 +206,6 @@ export default function CardSlider({
       </Box>
     </Box>
   );
-}
+};
+
+export default CardSlider;

@@ -7,101 +7,265 @@ import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
+import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
+import ReportProblemOutlinedIcon from '@mui/icons-material/ReportProblemOutlined';
+import ThermostatOutlinedIcon from '@mui/icons-material/ThermostatOutlined';
+import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
+import ParkOutlinedIcon from '@mui/icons-material/ParkOutlined';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import MyLocationOutlinedIcon from '@mui/icons-material/MyLocationOutlined';
 
 import type { RecoLocItem } from '@/types/AIBestLocation/reco';
 
-const formatNumber = (n: number) => n.toLocaleString('ko-KR');
+const formatNumber = (n?: number | null) =>
+  typeof n === 'number' ? n.toLocaleString('ko-KR') : '-';
 
-export default function ResultCard({ item }: { item: RecoLocItem }): React.JSX.Element {
+function popuColor(level?: string) {
+  switch (level) {
+    case '많음':
+      return { bgcolor: '#ffebee', color: '#c62828' };
+    case '보통':
+      return { bgcolor: '#e3f2fd', color: '#1565c0' };
+    case '적음':
+      return { bgcolor: '#e8f5e9', color: '#2e7d32' };
+    default:
+      return { bgcolor: '#f5f5f5', color: '#616161' };
+  }
+}
+
+function ndviStatus(score?: number | null) {
+  if (typeof score !== 'number') {
+    return { label: '-', color: '#616161', bg: '#f5f5f5' };
+  }
+  if (score <= 50) {
+    return { label: '부족', color: '#c62828', bg: '#ffebee' };
+  }
+  return { label: '양호', color: '#2e7d32', bg: '#e8f5e9' };
+}
+
+
+export default function ResultCard({
+  item,
+  onFocus,
+  displayRank,
+}: {
+  item: RecoLocItem;
+  onFocus?: () => void;
+  displayRank: number;
+}): React.JSX.Element {
   return (
-    <Paper variant="outlined" sx={{
-      width: '420px',
-      height: '100%',
-      borderRadius: 2,
-      p: 2.5,
-      background: 'linear-gradient(90deg, #27C1C3 0%, #4ED6B8 100%)',
-      boxShadow: '0 4px 12px rgba(39, 193, 195, 0.35)', }}>
-        {/* 상단 헤더 */}
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Chip
-              label={`${item.reco_loc_rank}위`}
-              sx={{ bgcolor: '#4A60DD', color: 'white', fontWeight: 900, borderRadius: 1.5 }}
-            />
+    <Paper
+      variant="outlined"
+      sx={{
+        width: '100%',
+        borderRadius: 2,
+        p: 2.5,
+        background: 'linear-gradient(180deg, #f7fbff 0%, #ffffff 40%)',
+        boxShadow: '0 6px 16px rgba(16, 75, 120, 0.12)',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      {/* 상단 헤더 */}
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <Chip
+            label={`${displayRank}위`}
+            icon={<ReportProblemOutlinedIcon sx={{ color: 'white' }} />}
+            sx={{ bgcolor: '#4A60DD', color: 'white', fontWeight: 900, borderRadius: 1.5 }}
+          />
+          <Box
+            sx={{
+              px: 1.75,
+              py: 0.5,
+              borderRadius: 999,
+              bgcolor: '#0f2a3a',
+              color: 'white',
+              fontSize: 12,
+              fontWeight: 800,
+              lineHeight: 1.4,
+            }}
+          >
+            AI 추천
+          </Box>
+        </Stack>
+
+        <Button
+          size="small"
+          variant="outlined"
+          startIcon={<MyLocationOutlinedIcon />}
+          onClick={onFocus}
+          disabled={!onFocus}
+          sx={{ borderRadius: 999 }}
+        >
+          지도 위치 보기
+        </Button>
+      </Box>
+
+      {/* 주소 + 종합점수 */}
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 2,
+          mt: 1.5,
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+          <LocationOnOutlinedIcon sx={{ color: '#1565c0' }} />
+          <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+            <Typography variant="h6" sx={{ fontWeight: 900 }}>
+              {item.gee_address_full ?? '-'}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              {formatNumber(item.lat)}, {formatNumber(item.lng)}
+            </Typography>
+          </Box>
+        </Box>
+
+        <Typography variant="h6" fontWeight={900} sx={{ color: '#0f2a3a', whiteSpace: 'nowrap' }}>
+          종합점수 {formatNumber(item.reco_loc_total_score)}점
+        </Typography>
+      </Box>
+
+      <Divider sx={{ my: 2 }} />
+
+      {/* 핵심 지표 */}
+      <Box
+        sx={{
+          mt: 0.5,
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+          gap: 1.25,
+          mb: 2,
+        }}
+      >
+        <Box sx={{ p: 1.25, borderRadius: 1.5, bgcolor: '#f5f7fb' }}>
+          <Stack direction="row" spacing={1} alignItems="center">
             <Box
               sx={{
-                display: "inline-flex",
-                alignItems: "center",
-                px: 1.5,
-                py: 1,
-                background: 'linear-gradient(90deg, #0B1220 0%, #0F2A3A 15%, #123B4D 100%)',
-                color: "white",
-                fontWeight: 450,
-                borderRadius: 3, // ✅ 모서리
-                lineHeight: 1,
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                bgcolor: '#e8eefc',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flex: '0 0 auto',
               }}
             >
-              AI 추천
+              <GroupsOutlinedIcon sx={{ fontSize: 20, color: '#546e7a' }} />
             </Box>
-          </Box>
-
-          {item.reco_loc_tag ? (
-            <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 800 }}>
-              {item.reco_loc_tag}
-            </Typography>
-          ) : null}
+            <Box sx={{ minWidth: 0, textAlign: 'center', flex: 1 }}>
+              <Typography variant="caption" color="text.secondary" fontWeight={700}>
+                유동인구
+              </Typography>
+              <Box sx={{ mt: 0.25 }}>
+                <Chip
+                  label={item.reco_loc_popu_level ?? '-'}
+                  size="small"
+                  sx={{ ...popuColor(item.reco_loc_popu_level), fontWeight: 800 }}
+                />
+              </Box>
+            </Box>
+          </Stack>
         </Box>
 
-        {/* 타이틀 */}
-        <Typography variant="h6" sx={{ mt: 1.5, fontWeight: 900 }}>
-          {item.gee_loc_adress}
+        <Box sx={{ p: 1.25, borderRadius: 1.5, bgcolor: '#f5f7fb' }}>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Box
+              sx={{
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                bgcolor: '#fde8e3',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flex: '0 0 auto',
+              }}
+            >
+              <ThermostatOutlinedIcon sx={{ fontSize: 20, color: '#d84315' }} />
+            </Box>
+            <Box sx={{ minWidth: 0, textAlign: 'center', flex: 1 }}>
+              <Typography variant="caption" color="text.secondary" fontWeight={700}>
+                체감온도
+              </Typography>
+              <Typography fontWeight={900} sx={{ mt: 0.25 }}>
+                {formatNumber(item.reco_loc_feel_temp)}°C
+              </Typography>
+            </Box>
+          </Stack>
+        </Box>
+
+        <Box sx={{ p: 1.25, borderRadius: 1.5, bgcolor: '#f5f7fb' }}>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Box
+              sx={{
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                bgcolor: '#e7f5ec',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flex: '0 0 auto',
+              }}
+            >
+              <ParkOutlinedIcon sx={{ fontSize: 20, color: '#2e7d32' }} />
+            </Box>
+            <Box sx={{ minWidth: 0, textAlign: 'center', flex: 1 }}>
+              <Typography variant="caption" color="text.secondary" fontWeight={700}>
+                자연공간
+              </Typography>
+              <Box sx={{ mt: 0.25 }}>
+                <Chip
+                  label={ndviStatus(item.reco_loc_ndvi_score).label}
+                  size="small"
+                  sx={{
+                    bgcolor: ndviStatus(item.reco_loc_ndvi_score).bg,
+                    color: ndviStatus(item.reco_loc_ndvi_score).color,
+                    fontWeight: 800,
+                  }}
+                />
+              </Box>
+            </Box>
+          </Stack>
+        </Box>
+
+      </Box>
+
+      {/* 추천 사유 */}
+      <Box
+        sx={{
+          bgcolor: '#ffffff',
+          border: '1px solid #e6eef7',
+          borderRadius: 2,
+          p: 2,
+          flex: 1,
+          minHeight: 0,
+        }}
+      >
+        <Typography sx={{ fontWeight: 900, color: '#1565c0', mb: 1 }}>
+          AI 추천 사유
         </Typography>
 
-        {/* 요약 지표 (Grid 대신 CSS Grid) */}
-        <Box
-          sx={{
-            mt: 1,
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
-            gap: 1.5,
-          }}
-        >
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Typography variant="body2" color="text.secondary" fontWeight={700}>일 유동인구</Typography>
-            <Typography fontWeight={900}>{formatNumber(item.float_popu)}명</Typography>
-          </Stack>
-
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Typography variant="body2" color="text.secondary" fontWeight={700}>취약성 지수</Typography>
-            <Typography fontWeight={900}>{formatNumber(item.reco_loc_risk)}점</Typography>
-          </Stack>
-
-        </Box>
-
-        <Divider sx={{ my: 2 }} />
-
-        {/* 추천 사유 */}
-        <Box sx={{ bgcolor: '#f7fbff', border: '1px solid #d6e9ff', borderRadius: 2, p: 2, height: '57%' }}>
-          <Typography sx={{ fontWeight: 900, color: '#1565c0', mb: 1 }}>
-            AI 추천 사유
-          </Typography>
-
-          <Box component="ul" sx={{ m: 0, pl: 2 }}>
-            {(item.reco_loc_desc && item.reco_loc_desc.length > 0
-              ? item.reco_loc_desc
-              : ['추천 사유 데이터가 없습니다']
-            ).map((text) => (
-              <Typography
-                key={text}
-                component="li"
-                variant="body2"
-                sx={{ mb: 0.5, color: 'text.primary', fontWeight: 600 }}
-              >
+        <Stack spacing={0.75}>
+          {(item.reco_loc_desc && item.reco_loc_desc.length > 0
+            ? item.reco_loc_desc
+            : ['추천 사유 데이터가 없습니다']
+          ).map((text) => (
+            <Stack key={text} direction="row" spacing={1} alignItems="flex-start">
+              <CheckCircleOutlineIcon sx={{ color: '#1565c0', fontSize: 18, mt: '2px' }} />
+              <Typography variant="body2" sx={{ color: 'text.primary', fontWeight: 600 }}>
                 {text}
               </Typography>
-            ))}
-          </Box>
-        </Box>
-      </Paper>
+            </Stack>
+          ))}
+        </Stack>
+      </Box>
+    </Paper>
   );
 }
