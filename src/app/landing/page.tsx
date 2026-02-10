@@ -140,11 +140,10 @@ export default function Landing(): React.JSX.Element {
 									width: '100%',
 									maxWidth: 800,
 									borderRadius: 4,
-									border: '1px solid',
-									borderColor: 'primary.light',
 									bgcolor: 'rgba(255,255,255,0.65)',
 									boxShadow: `0 40px 90px rgba(15, 23, 42, 0.25), 0 20px 40px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(74, 96, 221, 0.08)`,
 									overflow: 'hidden',
+									p: 2,
 								}}
 							>
 								<Box
