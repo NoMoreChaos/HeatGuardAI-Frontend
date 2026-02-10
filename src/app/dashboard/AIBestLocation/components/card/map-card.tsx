@@ -4,53 +4,77 @@ import { useEffect, useRef, useState } from 'react';
 import Script from 'next/script';
 import Box from '@mui/material/Box';
 
-import type { RecoLocItem } from '../../../../../types/AIBestLocation/reco';
+import type { RecoLocItem } from '@/types/AIBestLocation/reco';
+import * as React from "react";
 
-type MapCardProps = {
+export type MapCardProps = {
   height: number;
   points: RecoLocItem[];
+  focusPoint?: RecoLocItem | null;
+  focusKey?: number;
+  onSelectPoint?: (item: RecoLocItem, index: number) => void;
+  activeIndex?: number;
 };
 
 const MARKER_IMG = '/assets/marker.svg';
 
-export default function MapCard({ height, points }: MapCardProps) {
+const MapCard: React.FC<MapCardProps> = ({
+  height,
+  points,
+  focusPoint,
+  focusKey,
+  onSelectPoint,
+  activeIndex,
+}) => {
   const mapRef = useRef<HTMLDivElement | null>(null);
+  const mapInstanceRef = useRef<any | null>(null);
+  const markersRef = useRef<any[]>([]);
   const [loaded, setLoaded] = useState(false);
   const clientId = process.env.NEXT_PUBLIC_NAVER_MAP_CLIENT_ID;
 
   useEffect(() => {
     // eslint-disable-next-line unicorn/prefer-global-this
-    if (window.naver?.maps) setLoaded(true);
+    if ((window as any).naver?.maps) setLoaded(true);
   }, []);
 
   useEffect(() => {
     if (!loaded || !mapRef.current || points.length === 0) return;
 
     // eslint-disable-next-line unicorn/prefer-global-this
-    const naver = window.naver;
+    const naver = (window as any).naver;
     if (!naver) return;
 
-    // 지도 생성 (첫 번째 포인트 기준)
-    const center = new naver.maps.LatLng(points[0].lat, points[0].lng);
-    const map = new naver.maps.Map(mapRef.current, {
-      center,
-      zoom: 15,
-    });
+    const targetPoint = focusPoint ?? points[0];
+    const center = new naver.maps.LatLng(targetPoint.lat, targetPoint.lng);
+    const zoom = focusPoint ? 18 : 15;
 
-    // 마커 생성
-    for (const item of points) {
+    if (!mapInstanceRef.current) {
+      mapInstanceRef.current = new naver.maps.Map(mapRef.current, {
+        center,
+        zoom,
+      });
+    } else {
+      mapInstanceRef.current.setCenter(center);
+      mapInstanceRef.current.setZoom(zoom);
+    }
+
+    markersRef.current.forEach((marker) => marker.setMap(null));
+    markersRef.current = [];
+
+    points.forEach((item, idx) => {
       const position = new naver.maps.LatLng(item.lat, item.lng);
 
-      new naver.maps.Marker({
+      const marker = new naver.maps.Marker({
         position,
-        map,
+        map: mapInstanceRef.current,
         icon: {
-          content: makeMarkerHTML(item.reco_loc_rank),
+          content: makeMarkerHTML(idx + 1),
           anchor: new naver.maps.Point(18, 36),
         },
       });
-    }
-  }, [loaded, points]);
+      markersRef.current.push(marker);
+    });
+  }, [loaded, points, focusPoint, focusKey]);
 
   if (!clientId) {
     return <Box>지도 키를 확인해주세요.</Box>;
@@ -63,10 +87,81 @@ export default function MapCard({ height, points }: MapCardProps) {
         strategy="afterInteractive"
         onLoad={() => setLoaded(true)}
       />
+
+      {/* 우측 상단 순위 리스트 */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 12,
+          right: 12,
+          zIndex: 8,
+          px: 1,
+          py: 1,
+          borderRadius: 2,
+          bgcolor: 'rgba(255,255,255,0.9)',
+          boxShadow: 2,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 0.5,
+          maxHeight: 220,
+          overflowY: 'auto',
+        }}
+      >
+        {points.map((p, idx) => {
+          const isActive = typeof activeIndex === 'number' && idx === activeIndex;
+          return (
+          <Box
+            key={`${p.gee_address_full ?? 'point'}-${idx}`}
+            onClick={() => onSelectPoint?.(p, idx)}
+            sx={{
+              px: 1,
+              py: 0.5,
+              borderRadius: 1,
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: onSelectPoint ? 'pointer' : 'default',
+              bgcolor: isActive ? 'rgba(74,96,221,0.22)' : 'rgba(74,96,221,0.08)',
+              color: isActive ? '#1a2fbf' : '#2e49e1',
+              border: isActive ? '1px solid rgba(74,96,221,0.6)' : '1px solid transparent',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {idx + 1}위
+          </Box>
+        )})}
+      </Box>
+
+      {/* ✅ 좌측 상단 오버레이 */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 12,
+          left: 12,
+          zIndex: 8, // 지도/마커 위로
+          px: 1.5,
+          py: 0.75,
+          borderRadius: 999,
+          bgcolor: '#fff',
+          boxShadow: 2,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.75,
+          fontWeight: 700,
+          fontSize: 14,
+          lineHeight: 1,
+        }}
+      >
+        {/* 아이콘이 필요하면 이미지/아이콘 추가 */}
+        <Box component="img" src="/assets/marker.svg" alt="AI 쿨링포그 위치 추천" sx={{ width: 16, height: 16 }} />
+        쿨링포그 추천 위치
+      </Box>
+
       <Box ref={mapRef} sx={{ width: '100%', height: '100%' }} />
     </Box>
   );
-}
+};
+
+export default MapCard;
 
 /**
  * 순위 숫자 뱃지 마커 HTML
@@ -74,7 +169,7 @@ export default function MapCard({ height, points }: MapCardProps) {
 function makeMarkerHTML(rank: number) {
   return `
     <div style="position:relative;width:36px;height:36px;transform:translate(-50%,-100%);">
-      <img src="${MARKER_IMG}" style="width:36px;height:36px;display:block;" />
+      <img src="${MARKER_IMG}" style="width:36px;height:36px;display:block;" alt="No image"/>
       <div style="
         position:absolute;
         top:2px;               /* 숫자 높이 조절 포인트 */
