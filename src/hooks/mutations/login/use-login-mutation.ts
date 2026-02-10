@@ -39,7 +39,7 @@ return data
                 checkSession?.().catch(() => {
                     // noop
                 });
-                router.push("/");
+                router.push("/dashboard");
 // todo: 성공 시 데이터 처리
             } else {
                 alert(data.error ?? "로그인 실패");
