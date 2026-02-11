@@ -23,6 +23,7 @@ import { paths } from '@/paths';
 import { useUser } from '@/hooks/use-user';
 import { useEmailCheckMutation } from '@/hooks/mutations/email-check/use-email-check-mutation';
 import { useSignUpMutation } from '@/hooks/mutations/sign-up/use-sign-up-mutation';
+import { PrivacyLink } from '@/components/link/privacy-link';
 
 const baseSchema = zod.object({
   name: zod.string().min(1, { message: '이름을 입력해 주세요.' }),
@@ -58,8 +59,6 @@ export function SignUpForm(): React.JSX.Element {
   const [emailCheckError, setEmailCheckError] = React.useState<boolean>(false);
   const { mutateAsync: checkEmail } = useEmailCheckMutation();
   const { mutateAsync: signUp } = useSignUpMutation();
-
-  const PRIVACY_POLICY_URL = process.env.NEXT_PUBLIC_PRIVACY_POLICY_URL;
 
   const {
     control,
@@ -239,12 +238,10 @@ export function SignUpForm(): React.JSX.Element {
                 <FormControlLabel
                   control={<Checkbox {...field} />}
                   label={
-                    <React.Fragment>
-                      <Link component="a" href={PRIVACY_POLICY_URL} target="_blank" rel="noopener noreferrer">
-                        개인정보 처리방침
-                      </Link>
-                      에 동의합니다.
-                    </React.Fragment>
+										<>
+											<PrivacyLink sx={{ color: '#4A60DD' }} />
+											에 동의합니다.
+										</>
                   }
                 />
                 {errors.terms ? <FormHelperText error>{errors.terms.message}</FormHelperText> : null}
