@@ -24,10 +24,12 @@ export function FeatureCard({ icon: Icon, title, description, index }: FeatureCa
 				border: '1px solid',
 				borderColor: 'divider',
 				bgcolor: 'background.paper',
+				boxShadow: '0 12px 28px rgba(15, 23, 42, 0.18)',
 				transition: 'all 0.3s ease',
 				'&:hover': {
-					boxShadow: '0 12px 28px rgba(15, 23, 42, 0.12)',
+					boxShadow: '0 12px 28px rgba(15, 23, 42, 0.35)',
 					borderColor: 'primary.light',
+					transform: 'translateY(-4px)',
 				},
 				...(index % 2 === 1 ? { ml: { md: 4 } } : { mr: { md: 4 } }),
 			}}
