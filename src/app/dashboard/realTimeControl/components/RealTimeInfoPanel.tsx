@@ -208,6 +208,7 @@ export function RealTimeInfoPanel({ selectedCoolingFog }: RealTimeInfoPanelProps
 										connectNulls={false}
 										name="선택 위치 온도"
 										stroke="#2563eb"
+										strokeWidth={2}
 										dot={{ r: 4 }}
 										activeDot={{ r: 6 }}
 									/>
