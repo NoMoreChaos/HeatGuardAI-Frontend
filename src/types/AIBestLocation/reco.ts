@@ -23,10 +23,10 @@ export type RecoLocItem = {
   reco_loc_rank: number;                    // 1,2,3...
   gee_address_full: string;                 // 주소(서버 키 그대로 사용)
   reco_loc_popu_level: string;              // 유동인구
-  reco_loc_vulnerable_score: number;        // 취약계층 점수
+  reco_loc_vulnerable_level: string;        // 취약계층 수준(적음/보통/많음)
   reco_loc_feel_temp: number;               // 체감온도
-  reco_loc_lst_score: number;               // 지표면 온도
-  reco_loc_ndvi_score: number;              // 식생지수 점수
+  reco_loc_lst_level: string;               // 지표면 온도 수준(낮음/보통/높음)
+  reco_loc_ndvi_level: string;              // 자연공간 수준(낮음/보통/높음)
   reco_loc_total_score: number;             // 종합점수
   reco_loc_desc?: string[];                 // 추천 사유 리스트
 };

@@ -46,7 +46,7 @@ const MapCard: React.FC<MapCardProps> = ({
 
     const targetPoint = focusPoint ?? points[0];
     const center = new naver.maps.LatLng(targetPoint.lat, targetPoint.lng);
-    const zoom = focusPoint ? 18 : 15;
+    const zoom = focusPoint ? 18 : 14;
 
     if (!mapInstanceRef.current) {
       mapInstanceRef.current = new naver.maps.Map(mapRef.current, {
