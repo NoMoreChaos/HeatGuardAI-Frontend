@@ -18,10 +18,45 @@ import { CurrencyDollarIcon } from '@phosphor-icons/react/dist/ssr/CurrencyDolla
 
 import { MainFooter } from '@/components/dashboard/layout/main-footer';
 import { useUser } from '@/hooks/use-user';
+import IconButton from '@mui/material/IconButton';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
 export default function Landing(): React.JSX.Element {
 	const router = useRouter();
 	const { checkSession } = useUser();
+	const sliderRef = React.useRef<HTMLDivElement | null>(null);
+
+	const sliderImages = [
+		{ src: '/assets/dashbord.png', alt: '대시보드' },
+		{ src: '/assets/realtime.png', alt: '실시간 관제' },
+		{ src: '/assets/AIBestLocation.png', alt: 'AI 최적 위치 화면' },
+		{ src: '/assets/simulation.png', alt: '예산 시뮬레이션' },
+		{ src: '/assets/notice.png', alt: '공지사항' },
+	];
+
+	const handleSlideNav = (direction: 'prev' | 'next'): void => {
+		const slider = sliderRef.current;
+		if (!slider) return;
+		const offset = slider.clientWidth * (direction === 'prev' ? -1 : 1);
+		slider.scrollBy({ left: offset, behavior: 'smooth' });
+
+	};
+
+	React.useEffect(() => {
+		const slider = sliderRef.current;
+		if (!slider) return;
+		// eslint-disable-next-line unicorn/prefer-global-this
+		const id = window.setInterval(() => {
+			const atEnd = slider.scrollLeft + slider.clientWidth >= slider.scrollWidth - 2;
+			slider.scrollTo({
+				left: atEnd ? 0 : slider.scrollLeft + slider.clientWidth,
+				behavior: 'smooth',
+			});
+		}, 2000);
+		// eslint-disable-next-line unicorn/prefer-global-this
+		return () => window.clearInterval(id);
+	}, []);
 
 	const features = [
 		{ icon: HouseSimpleIcon, title: '대시보드', description: '지역별 폭염 위험·취약도 지표를 한 화면에서 제공합니다.' },
@@ -137,24 +172,87 @@ export default function Landing(): React.JSX.Element {
 								sx={{
 									position: 'relative',
 									width: '100%',
-									maxWidth: 800,
+									maxWidth: 900,
 									borderRadius: 4,
 									bgcolor: 'rgba(255,255,255,0.65)',
 									boxShadow: `20px 40px 90px rgba(15, 23, 42, 0.25), 12px 20px 40px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(74, 96, 221, 0.08)`,
-									overflow: 'hidden',
+									overflow: 'visible',
 									p: 2,
 								}}
 							>
-								<Box
-									component="img"
-									src="/assets/AIBestLocation.png"
-									alt="AI 최적 위치"
+								<IconButton
+									aria-label="이전 이미지"
+									onClick={() => handleSlideNav('prev')}
 									sx={{
-										display: 'block',
-										width: '100%',
-										height: 'auto',
+										position: 'absolute',
+										top: '50%',
+										left: -16,
+										transform: 'translateY(-50%)',
+										zIndex: 2,
+										bgcolor: 'rgba(255,255,255,0.9)',
+										boxShadow: '0 8px 18px rgba(15, 23, 42, 0.35)',
+										'&:hover': { bgcolor: '#fff' },
 									}}
-								/>
+								>
+									<ChevronLeftIcon  sx={{ color: '#4A60DD' }}/>
+								</IconButton>
+
+								<IconButton
+									aria-label="다음 이미지"
+									onClick={() => handleSlideNav('next')}
+									sx={{
+										position: 'absolute',
+										top: '50%',
+										right: -16,
+										transform: 'translateY(-50%)',
+										zIndex: 2,
+										bgcolor: 'rgba(255,255,255,0.9)',
+										boxShadow: '0 8px 18px rgba(15, 23, 42, 0.35)',
+										'&:hover': { bgcolor: '#fff' },
+									}}
+								>
+									<ChevronRightIcon sx={{ color: '#4A60DD' }} />
+								</IconButton>
+
+								<Box
+									ref={sliderRef}
+									sx={{
+										display: 'grid',
+										gridAutoFlow: 'column',
+										gridAutoColumns: '100%',
+										overflowX: 'auto',
+										scrollSnapType: 'x mandatory',
+										scrollBehavior: 'smooth',
+										gap: 2,
+										scrollbarWidth: 'none',
+										'&::-webkit-scrollbar': { display: 'none' },
+									}}
+								>
+									{sliderImages.map((image) => (
+										<Box
+											key={image.src}
+											sx={{
+												scrollSnapAlign: 'center',
+												height: { xs: 360, md: 620 },
+												display: 'flex',
+												alignItems: 'center',
+												justifyContent: 'center',
+											}}
+										>
+											<Box
+												component="img"
+												src={image.src}
+												alt={image.alt}
+												sx={{
+													display: 'block',
+													width: '100%',
+													height: '100%',
+													objectFit: 'contain',
+												}}
+											/>
+										</Box>
+									))}
+								</Box>
 							</Box>
 						</Box>
 					</Stack>
