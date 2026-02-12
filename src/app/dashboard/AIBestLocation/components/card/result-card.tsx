@@ -108,8 +108,17 @@ export default function ResultCard({
         <Stack direction="row" spacing={1} alignItems="center">
           <Chip
             label={`${displayRank}순위`}
-            icon={<ReportProblemOutlinedIcon sx={{ color: 'white' }} />}
-            sx={{ bgcolor: '#4A60DD', color: 'white', fontWeight: 900, borderRadius: 1.5 }}
+            icon={<ReportProblemOutlinedIcon />}
+            sx={{
+              bgcolor: '#4A60DD',
+              color: 'white',
+              fontWeight: 900,
+              borderRadius: 1.5,
+              p:1,
+              '& .MuiChip-icon': {
+                color: '#fad568',
+              },
+            }}
           />
           <Box
             sx={{

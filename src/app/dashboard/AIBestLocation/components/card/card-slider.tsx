@@ -25,14 +25,12 @@ const CardSlider: React.FC<CardSliderProps> = ({
 }) => {
   const railRef = React.useRef<HTMLDivElement | null>(null);
 
-  // ??null ?ы븿 + 諛곗뿴 ???紐낇솗??
   const itemRefs = React.useRef<Array<HTMLDivElement | null>>([]);
 
   const [maxH, setMaxH] = React.useState<number | null>(null);
 
   const items = React.useMemo(() => React.Children.toArray(children), [children]);
 
-  // ??children 媛쒖닔 諛붾뚮㈃ refs 湲몄씠???뺣━(?덉쟾)
   React.useEffect(() => {
     itemRefs.current = itemRefs.current.slice(0, items.length);
   }, [items.length]);
@@ -187,7 +185,6 @@ const CardSlider: React.FC<CardSliderProps> = ({
         {items.map((child, i) => (
           <Box
             key={i}
-            // ???ш린??"return" ?덈? ????(釉붾줉 諛붾뵒)
             ref={(node: HTMLDivElement | null) => {
               itemRefs.current[i] = node;
             }}
